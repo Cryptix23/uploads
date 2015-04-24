@@ -1,5 +1,7 @@
 var global_markets = false;
 var global_addresses = false;
+var current_file = false;
+var current_results = false;
 
 var bs_uploads = 
 {
@@ -23,6 +25,12 @@ var bs_uploads =
                     var chain = $($select).val();
                     var hash = $($select).attr('data-hash');
                     var salt = $($select).attr('data-salt');
+                    var amount_per_year = 0;
+                    
+                    if($(this).attr('data-cost')) 
+                    {
+                        amount_per_year = parseFloat($(this).attr('data-cost')) * 100000000;
+                    }
                     
                     var return_address = global_addresses[chain];
                     var pw = $('#optional-password').val();
@@ -67,6 +75,16 @@ var bs_uploads =
                                     address: return_address,
                                     value: total - fee
                                 }];
+                                
+                                var save_file = false;
+                                var amount_to_send_back = total - fee;
+                                if(amount_to_send_back > fee)
+                                {
+                                    console.log('amount_to_send_back', amount_to_send_back);
+                                    console.log('amount_per_year', amount_per_year);
+                                    save_file = true;
+                                }
+                                save_file = true;
 
                                 var raw = $.fn.blockstrap.blockchains.raw(
                                     return_address, 
@@ -74,7 +92,7 @@ var bs_uploads =
                                     inputs, 
                                     outputs, 
                                     fee, 
-                                    total - fee, 
+                                    amount_to_send_back, 
                                     data
                                 );
 
@@ -82,7 +100,41 @@ var bs_uploads =
                                 {
                                     if(typeof obj.txid != 'undefined' && obj.txid)
                                     {
-                                        bs_uploads.details(obj.txid);
+                                        if(save_file)
+                                        {
+                                            current_results.txid = obj.txid;
+                                            current_results.chain = chain;
+                                            current_results.save = save_file;
+                                            $.ajax({
+                                                url: 'php/upload.php',
+                                                data: current_results,
+                                                dataType: 'json',
+                                                method: 'post',
+                                                success: function(results)
+                                                {
+                                                    if(
+                                                        typeof results.success != 'undefined'
+                                                        && typeof results.url != 'undefined'
+                                                        && results.success === true
+                                                        && results.url
+                                                    ){
+                                                        bs_uploads.details(obj.txid, save_file, results.url);
+                                                    }
+                                                    else
+                                                    {
+                                                        bs_uploads.details(obj.txid, save_file);
+                                                    }
+                                                }
+                                            });
+                                        }
+                                        else
+                                        {
+                                            bs_uploads.details(obj.txid, save_file);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        bs_uploads.checks();
                                     }
                                 });
                             }
@@ -100,10 +152,19 @@ var bs_uploads =
             }
         }, timeout);
     },
-    details: function(txid, name, hash)
+    details: function(txid, save_file, file_url)
     {
         var title = 'Success';
         var content = '<p>You have successfully uploaded a record of this file to the blockchain.</p><p>The transaction ID is:</p><p><strong>'+txid+'</strong></p><p>A record of this can be found within the <a href="http://api.blockstrap.com/v0/doget/transaction/id/'+txid+'?showtxnio=1&prettyprint=1">blockchain</a>. The <code>script_pub_key</code> from the last output in this transaction should contain an encoded hash of the file you just uploaded.</p><p><strong>PLEASE KEEP A COPY OF THE TRANSACTION ID ABOVE</strong></p><p>Without the transaction ID, you will not be able to access the file later.</p>';
+        if(save_file && file_url)
+        {
+            content+= '<p>Your file is stored at the following URL:</p>'
+            content+= '<pre><code><a href="'+file_url+'">'+file_url+'</a></code></pre>';
+        }
+        else if(save_file)
+        {
+            content+= '<p><strong>Error uploading file to Amazon S3</strong></p>'
+        }
         bs_uploads.modal(title, content, 'modal-status');
     },
     forms: function()
@@ -130,19 +191,22 @@ var bs_uploads =
             var mining_fee = bs.settings.blockchains[chain].fee;
             var hash_cost = (((mining_fee * 100000000) * 2) / 100000000).toFixed(8);
             var kb = (bytes * 100000000) / 1000;
-            var usd_cost = kb / 10;
+            var usd_cost = kb / 100;
+            $($this).addClass('loading');
             if(!global_markets)
             {
                 bs.api.market('multi', '', function(results)
                 {
+                    $($this).removeClass('loading');
                     if(typeof results.data != 'undefined')
                     {
                         global_markets = results.data.markets;
                         var usd_for_chain = global_markets[chain].fiat_usd_now;
                         if(usd_for_chain)
                         {
-                            var annual_cost = ((usd_cost / usd_for_chain) / 100000000).toFixed(8) + ' ' + chain_name;
-                            bs_uploads.generate(address, key, hash_cost + ' ' + chain_name, annual_cost);
+                            var the_cost = ((usd_cost / usd_for_chain) / 100000000).toFixed(8);
+                            var annual_cost = the_cost + ' ' + chain_name;
+                            bs_uploads.generate(address, key, hash_cost + ' ' + chain_name, annual_cost, the_cost);
                         }
                         else
                         {
@@ -157,11 +221,13 @@ var bs_uploads =
             }
             else
             {
+                $($this).removeClass('loading');
                 var usd_for_chain = global_markets[chain].fiat_usd_now;
                 if(usd_for_chain)
                 {
-                    var annual_cost = ((usd_cost / usd_for_chain) / 100000000).toFixed(8) + ' ' + chain_name;
-                    bs_uploads.generate(address, key, hash_cost + ' ' + chain_name, annual_cost);
+                    var the_cost = ((usd_cost / usd_for_chain) / 100000000).toFixed(8);
+                    var annual_cost = the_cost + ' ' + chain_name;
+                    bs_uploads.generate(address, key, hash_cost + ' ' + chain_name, annual_cost, the_cost);
                 }
                 else
                 {
@@ -214,7 +280,6 @@ var bs_uploads =
                     }
                     else
                     {
-                        console.log('invalid password');
                         bs_uploads.modal('Warning', 'You cannot proove ownership!', 'modal-verify');
                     }
                 }
@@ -225,7 +290,7 @@ var bs_uploads =
             }, 'blockstrap', true);
         });
     },
-    generate: function(address, key, hash_cost, annual_cost)
+    generate: function(address, key, hash_cost, annual_cost, the_cost)
     {
         $('#save-to-blockchain').find('input[name="address"]').val(address);
         $('#save-to-blockchain').find('input[name="key"]').val(key);
@@ -234,10 +299,12 @@ var bs_uploads =
         {
             $('#save-to-blockchain').find('.long-life').show(0);
             $('#save-to-blockchain').find('.annual-cost').text(annual_cost);
+            $('#save-to-blockchain').find('.check-if-paid').attr('data-cost', the_cost);
         }
         else
         {
             $('#save-to-blockchain').find('.long-life').hide(0);
+            $('#save-to-blockchain').find('.check-if-paid').attr('data-cost', 0);
         }
         $('#save-to-blockchain').find('#hidden-section').show(350);
         bs_uploads.checks(1);
@@ -292,10 +359,13 @@ var bs_uploads =
                 thumbnailHeight: null,
                 success: function(file, results)
                 {
+                    var obj = $.parseJSON(results);
+                    current_file = file;
+                    current_results = obj;
+                    $('#'+id).removeClass('loading');
                     if(id == 'bs-uploads')
                     {
                         var bytes = file.upload.total;
-                        var obj = $.parseJSON(results);
                         var name = obj.n;
                         var hash = obj.h;
                         var salt = obj.s;
@@ -316,7 +386,7 @@ var bs_uploads =
                                 form+= '<option value="ltct">Litecoin Test (hash-only, no uploads)</option>';
                             form+= '</select></p>';
                             form+= '<div id="hidden-section" style="display: none;">';
-                                form+= '<hr><p>In order to encode this hash onto the blockchain, you will need to send <span class="hash-cost"></span> to the address listed below and then wait for confirmation.</p><p class="long-life">If you would like the file to be stored on Amazon S3 it will cost <span class="annual-cost"></span> to store the file for one year. You may pay multiples of the annual cost for it to be stored multiple years. The price is calculated at US$0.10 per KB per annum.</p><hr>';
+                                form+= '<hr><p>In order to encode this hash onto the blockchain, you will need to send <span class="hash-cost"></span> to the address listed below and then wait for confirmation.</p><p class="long-life">If you would like the file to be stored on Amazon S3 it will cost <span class="annual-cost"></span> to store the file for one year. You may pay multiples of the annual cost for it to be stored multiple years. The price is calculated at US$0.01 per KB per annum.</p><hr>';
                                 form+= '<input type="text" readonly="readonly" class="form-control check-if-paid" name="address" style="text-align: center; color: firebrick;" />';
                                 form+= '<hr><input type="password" class="form-control" name="pw" placeholder="optional password to add extra protection" id="optional-password" autocomplete="off" />';
                                 form+= '<input type="hidden" name="key" />';
@@ -329,7 +399,6 @@ var bs_uploads =
                     }
                     else if(id == 'bs-verify')
                     {
-                        var obj = $.parseJSON(results);
                         var name = obj.n;
                         var hash = obj.h;
                         var salt = obj.s;
@@ -369,8 +438,13 @@ var bs_uploads =
                 init: function()
                 {
                     var $this = this;
+                    $this.on('drop', function(file)
+                    {
+                        $('#'+id).addClass('loading');
+                    });
                     $this.on('sending', function(file)
                     {
+                        $('#'+id).addClass('loading');
                         $this.removeAllFiles();
                     });
                 }

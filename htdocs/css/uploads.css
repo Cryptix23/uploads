@@ -32,6 +32,7 @@ p.credits {
 .container .container {
     width: 100%;
 }
+.loading,
 .btn.loading {
     color: transparent;
     position: relative;
@@ -47,6 +48,12 @@ p.credits {
     width: 100%;
     height: 100%;
     background: url(../img/loading.gif) no-repeat center center;
+}
+select.form-control.loading,
+select.loading {
+    color: transparent;
+    background: transparent;
+    border-color: firebrick;
 }
 
 /*
@@ -130,6 +137,16 @@ form#save-to-blockchain .hash-cost,
 form#save-to-blockchain .annual-cost {
     font-weight: bold;
 }
+form.bs-dropzone.loading,
+.mini form.bs-dropzone.loading {
+    background: #000 url(../img/giphy.gif) center center no-repeat;
+    border-color: #AAA;
+}
+form.bs-dropzone.loading span.glyphicon,
+.mini form.bs-dropzone.loading span.glyphicon {
+    display: none;
+}
+    
 
 
 .dropzone-previews .dz-progress,
@@ -151,4 +168,8 @@ form#save-to-blockchain .annual-cost {
 .dropzone-previews .dz-details .size {
     margin: 5px 0;
     color: #757575;
+}
+.dz-image img {
+    max-width: 100%;
+    height: auto;
 }

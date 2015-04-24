@@ -25,20 +25,42 @@ $results = Array(
     'n' => false,
     's' => false,
     'h' => false,
+    'file' => false,
     'addresses' => $addresses
 );
+
+$bucket_name = $aws['bucket'];
+$s3 = new S3($aws['key'], $aws['secret']);
 
 if(isset($files['file'])) 
 {
     $file = $files['file'];
     $name = $file['name'];
     $type = $file['type'];
-    $bucket_name = 'bsuploads';
-    $file_hash = md5_file($file['tmp_name']);
+    $name_array = explode('.', $name);
+    $file_extension = array_pop($name_array);
+    $file_hash = substr(hash('sha256', $salts['file_hash'].file_get_contents($file['tmp_name'])), 0, 32);
+    $saved = false;
+    
+    $year = date('y');
+    $month = date('m');
+    $day = date('d');
+    
+    if($s3->putObjectFile(
+        $file['tmp_name'], 
+        $bucket_name, 'temp/'.$year.'/'.$month.'/'.$file_hash.'.'.$file_extension, 
+        S3::ACL_PUBLIC_READ
+    )){
+        $saved = true;
+    }
+    
     $results = Array(
-        'n' => $bucket_name.'/'.$name,
-        's' => hash('sha256', $salts['file_hash'].$name),
+        'n' => $name,
+        's' => hash('sha256', $salts['file_hash'].$file_hash),
         'h' => $file_hash,
+        'amazon' => $saved,
+        'type' => $type,
+        'extension' => $file_extension,
         'addresses' => $addresses
     );
 }
