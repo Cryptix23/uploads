@@ -78,13 +78,16 @@ var bs_uploads =
                                 
                                 var save_file = false;
                                 var amount_to_send_back = total - fee;
-                                if(amount_to_send_back > fee)
-                                {
-                                    console.log('amount_to_send_back', amount_to_send_back);
-                                    console.log('amount_per_year', amount_per_year);
+                                if(
+                                    amount_to_send_back > fee 
+                                    && amount_to_send_back >= amount_per_year - fee
+                                    && typeof data == 'string'
+                                    && data.indexOf('"y":1') > -1
+                                ){
                                     save_file = true;
+                                    var years = parseInt((amount_to_send_back + fee) / amount_per_year);
+                                    data = data.replace('"y":1', '"y":'+years);
                                 }
-                                save_file = true;
 
                                 var raw = $.fn.blockstrap.blockchains.raw(
                                     return_address, 
