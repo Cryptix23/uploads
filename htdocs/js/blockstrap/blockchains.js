@@ -177,16 +177,16 @@
                 op_out
             ]);
             tx.addOutput(op_return, 0);
+            // TODO - REMOVE THIS FLAKEY BIT...?
+            if(tx.outs[1].value === 0) tx.outs[1].type = "nulldata";
+            else if(tx.outs[2].value === 0) tx.outs[2].type = "nulldata";
         }
         $.each(inputs_to_sign, function(k)
         {
             tx.sign(k, key);
         });
-        var raw = tx.toHex();
         
-        // TODO - REMOVE THIS FLAKEY BIT...?
-        if(tx.outs[1].value === 0) tx.outs[1].type = "nulldata";
-        else if(tx.outs[2].value === 0) tx.outs[2].type = "nulldata";
+        var raw = tx.toHex();
         
         if(debug)
         {

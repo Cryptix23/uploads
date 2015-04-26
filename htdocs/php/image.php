@@ -64,15 +64,24 @@ if(
     // TODO - WHY IS THIS FLAKEY...?
     $key_array = explode('jI', $pub_key);
     if(!isset($key_array[1])) $key_array = explode('j:', $pub_key);
+    if(strpos($pub_key, '{') == 2)
+    {
+        $msg = json_decode(substr($pub_key, 2), true);
+    }
+    else
+    {
+        $msg = json_decode($key_array[1], true);
+    }
     
-    $msg = json_decode($key_array[1], true);
-    $pw = $msg['p'];
+    $pw = 'false';
+    if(isset($msg['p'])) $pw = $msg['p'];
     $hash = $msg['h'];
     $salt = hash('sha256', $salts['file_hash'].$hash);
     $password = substr(hash('sha256', $salt.$password), 0, 20);
     if($pw === 'false' || $pw != 'false' && $pw == $password)
     {
-        $years_to_live = $msg['y'];
+        $years_to_live = 1;
+        if(isset($msg['y'])) $year_to_live = $msg['y'];
 
         $bucket_name = $aws['bucket'];
         $s3 = new S3($aws['key'], $aws['secret']);

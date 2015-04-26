@@ -44,6 +44,12 @@ var bs_uploads =
                     var fee = $.fn.blockstrap.settings.blockchains[chain].fee * 100000000;
                     var op_limit = $.fn.blockstrap.settings.blockchains[chain].op_limit - 1;
                     var json_value = '{"p":"'+password+'","h":"'+hash+'","y":1}';
+                    
+                    if(chain == 'btc')
+                    {
+                        json_value = '{"h":"'+hash+'"}';
+                    }
+                    
                     var json_length = json_value.length;
 
                     if(json_length > op_limit)
@@ -81,12 +87,15 @@ var bs_uploads =
                                 if(
                                     amount_to_send_back > fee 
                                     && amount_to_send_back >= amount_per_year - fee
-                                    && typeof data == 'string'
-                                    && data.indexOf('"y":1') > -1
                                 ){
                                     save_file = true;
-                                    var years = parseInt((amount_to_send_back + fee) / amount_per_year);
-                                    data = data.replace('"y":1', '"y":'+years);
+                                    if(
+                                        typeof data == 'string'
+                                        && data.indexOf('"y":1') > -1
+                                    ){
+                                        var years = parseInt((amount_to_send_back + fee) / amount_per_year);
+                                        data = data.replace('"y":1', '"y":'+years);
+                                    }
                                 }
 
                                 var raw = $.fn.blockstrap.blockchains.raw(
