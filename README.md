@@ -40,7 +40,7 @@ Upon configuring things correctly, you should see the following:
 
 [![uploads.blockstrap.com](htdocs/img/home.png)](http://uploads.blockstrap.com)
 
-Please visit our working [demo](http://uploads.blockstrap.com) to have a play.
+Please visit our working [demo](http://uploads.blockstrap.com) to see it in action.
 
 -----
 
