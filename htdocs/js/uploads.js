@@ -267,6 +267,7 @@ var bs_uploads =
                 if(typeof results.outputs != 'undefined' && typeof results.outputs[1] != 'undefined')
                 {
                     var output = results.outputs[1].script_pub_key;
+                    var date = new Date(results.time * 1000).toDateString();
                     var msg = bs.blockchains.decode(output);
                     var obj = $.parseJSON(msg);
                     var pw = obj.p;
@@ -282,22 +283,30 @@ var bs_uploads =
                     {
                         if(hash == $(form).attr('data-hash'))
                         {
-                            var intro = '<p>You can indeed proove ownership!</p>';
+                            var intro = '<p>You can indeed prove ownership!</p><p>Originally uploaded on <strong>'+date+'</strong></p>';
                             bs_uploads.modal('Congratulations', intro, 'modal-verify');
                         }
                         else
                         {
-                            bs_uploads.modal('Warning', 'You cannot proove ownership!', 'modal-verify');
+                            bs_uploads.modal('Warning', 'You cannot prove ownership!', 'modal-verify');
                         }
                     }
                     else
                     {
-                        bs_uploads.modal('Warning', 'You cannot proove ownership!', 'modal-verify');
+                        if(hash == $(form).attr('data-hash') && !pw)
+                        {
+                            var intro = '<p>You can indeed prove ownership!</p><p>Originally uploaded on <strong>'+date+'</strong></p><p>(without password protection / confirmation)</p>';
+                            bs_uploads.modal('Congratulations', intro, 'modal-verify');
+                        }
+                        else
+                        {
+                            bs_uploads.modal('Warning', 'You cannot prove ownership!', 'modal-verify');
+                        }
                     }
                 }
                 else
                 {
-                    bs_uploads.modal('Warning', 'You cannot proove ownership!', 'modal-verify');
+                    bs_uploads.modal('Warning', 'You cannot prove ownership!', 'modal-verify');
                 }
             }, 'blockstrap', true);
         });
