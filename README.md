@@ -12,7 +12,7 @@ secret = ADD_YOUR_S3_API_SECRET_HERE
 bucket = ADD_THE_BUCKET_NAME_ALREADY_CREATED_HERE
 
 [urls]
-image = php/image.php
+image = http://this-domain.com/php/image.php
 
 [salts]
 file_hash = XXX
@@ -27,6 +27,8 @@ dasht = y67MSj12Wm9YJA4291VPpnC8pGS128tH4J
 doget = ncq5H5EdCwmGVtQtquk2TKyXDTNApoDpwq
 ltct = moyssLnSTs6EBWDoyRMaXkUKnDmLCSXBte
 ```
+
+__Do NOT forget to change the `urls` to match your domain.__
 
 The `aws` settings are used to upload files.
 
