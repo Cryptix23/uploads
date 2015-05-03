@@ -40,6 +40,8 @@ Upon configuring things correctly, you should see the following:
 
 [![uploads.blockstrap.com](htdocs/img/home.png)](http://uploads.blockstrap.com)
 
+Please visit our working [demo](http://uploads.blockstrap.com) to have a play.
+
 -----
 
 For more information, please visit [docs.blockstrap.com](http://docs.blockstrap.com/en/applications/uploads/).
