@@ -44,7 +44,7 @@
         }
     ],
     "intro": "verify ownership of a file by uploading it below",
-    "credits": "Powered by <a href='http://blockstrap.com'>Blockstrap</a>",
+    "credits": "Powered by <a href='http://blockstrap.com'>Blockstrap</a> | View <a href='https://github.com/blockstrap/uploads'>Source Code</a>",
     "analytics": {
         "google": "UA-55832346-1"
     }

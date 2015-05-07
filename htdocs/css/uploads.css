@@ -114,6 +114,7 @@ form.bs-dropzone span.glyphicon {
     color: #0099CC;
     text-align: center;
     top: calc(50% - 80px);
+    margin-left: -30px;
 }
 form.bs-dropzone:after {
     content: "DRAG AND DROP A FILE TO HASH IT TO THE BLOCKCHAIN";
