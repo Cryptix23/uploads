@@ -184,7 +184,7 @@ var bs_uploads =
         bs_uploads.form_chain();
         bs_uploads.form_check();
     },
-    form_chain()
+    form_chain: function()
     {
         $('body').on('change', '#initial-blockchain-selection', function(e)
         {
